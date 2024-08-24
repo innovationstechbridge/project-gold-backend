@@ -1,19 +1,34 @@
 import express from "express";
+import bodyParser from "body-parser";
+import morgan from "morgan";
+import 'dotenv/config';
+import db from './src/config/db.js';
+import {errorHandler} from "./src/components/authentication/helper/AuthHelper.js";
 
 const app = express();
 
-app.get("/api", (req, res) => {
-  return res.status(200).json({
-    status: 200,
-    message: "server is up",
-  });
-});
+/**
+ * use of middleware
+ */
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(morgan('tiny'));
 
-let server = app.listen(3000, () => {
-  console.log("Server is working");
-});
+// create connection of database
+db.authenticate();
+import WorkerAssociation from "./src/components/worker/model/WorkerAssociation.js";
+import ShopAssociation from "./src/components/shop/model/ShopAssociation.js";
+import GalleryAssoc from "./src/components/gallery/model/GalleryAssoc.js";
+import UserAssoc from "./src/components/users/model/UserAssoc.js";
+import CategoryAssoc from "./src/components/category/model/CategoryAssoc.js";
 
-process.on("unhandledRejection", (error, promise) => {
-  console.log(`Logged Error ${error}`);
-  server.close(() => process.exit(1));
+// API routes handling -> config -> api_routes.js
+import apiRoutes from "./src/config/api_routes.js";
+app.use("/", apiRoutes);
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+    console.log(`Server is loading at ${PORT}`)
 });
