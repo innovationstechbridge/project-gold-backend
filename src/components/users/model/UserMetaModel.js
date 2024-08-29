@@ -7,7 +7,7 @@ class UserMetaModel extends Model {}
 
 UserMetaModel.init(
   {
-    id: {
+    meta_id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,

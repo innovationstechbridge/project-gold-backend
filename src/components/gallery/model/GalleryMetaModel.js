@@ -5,7 +5,7 @@ class GalleryMetaModel extends Model {}
 
 GalleryMetaModel.init(
   {
-    id: {
+    meta_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       autoIncrement: true,
