@@ -2,7 +2,7 @@ import { Sequelize } from "sequelize";
 
 let db_host = process.env.DB_HOST || "localhost";
 let db_user = process.env.DB_USER || "root";
-let db_pass = process.env.DB_PASS || "root@12345";
+let db_pass = process.env.DB_PASS || "";
 let db_name = process.env.DB_NAME ?? "project_gold";
 
 
