@@ -77,9 +77,6 @@ const signInUser = async (req, res) => {
   
         let refreshToken = uuidv4();
   
-        user.session_key = refreshToken;
-        await user.save();
-  
         return res.status(200).json({
           status: 200,
           accessToken,

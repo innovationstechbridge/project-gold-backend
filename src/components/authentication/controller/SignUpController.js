@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import Joi from "joi";
 
 import UserMetaModel from "../../users/model/UserMetaModel.js";
@@ -36,10 +35,9 @@ const signUpUser = async (req, res) => {
 
     let { fullname, email, password, contact_no, meta } = value;
     password = PasswordHelper.encryptPassword(password);
-    let session_key = uuidv4();
 
     let user = await UserModel.create(
-      { fullname, email, password, contact_no, session_key },
+      { fullname, email, password, contact_no },
       { transaction }
     );
 
@@ -67,10 +65,8 @@ const signUpUser = async (req, res) => {
     return res.status(201).json({
       status: 201,
       message: "User Account has been created",
-      refreshToken: session_key, // Return the session key as the refresh token
     });
   } catch (error) {
-    // Rollback the transaction in case of an error
     if (transaction) await transaction.rollback();
 
     console.error("Error in sign up:", error);

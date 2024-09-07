@@ -49,10 +49,6 @@ UserModel.init(
       type: DataTypes.DATE,
       allowNull: true,
     },
-    session_key: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
   },
   {
     sequelize: db.sequelize,

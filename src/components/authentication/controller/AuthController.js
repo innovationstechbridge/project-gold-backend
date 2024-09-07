@@ -6,13 +6,13 @@ const generateToken = async (req, res) => {
   const { refreshToken } = req.body;
 
   if (!refreshToken) {
-    return res.status(403).json({ message: 'Refresh token is required' });
+    return res.status(403).json({ message: "Refresh token is required" });
   }
 
   let user = await UserModel.findOne({ where: { session_key: refreshToken } });
 
   if (!user) {
-    return res.status(403).json({ message: 'Invalid refresh token' });
+    return res.status(403).json({ message: "Invalid refresh token" });
   }
 
   let newAccessToken = jwt.sign(
@@ -23,7 +23,7 @@ const generateToken = async (req, res) => {
       role: user.role,
     },
     process.env.JWT_SECRET,
-    { expiresIn: '30m' }
+    { expiresIn: "30m" }
   );
 
   return res.status(200).json({
@@ -31,5 +31,4 @@ const generateToken = async (req, res) => {
   });
 };
 
-
-export default { signInUser, signUpUser, generateToken };
+export default { generateToken };
