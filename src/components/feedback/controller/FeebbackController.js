@@ -52,6 +52,22 @@ const updateStatus = async (req, res) => {
         message: "Item not found",
       });
     }
+
+    await FeedbackModel.update(
+      {
+        status: sts,
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
+
+    return res.status(200).json({
+      status: 200,
+      message: "Item has been updated",
+    });
   } catch (error) {
     return res.status(500).json({
       status: 500,

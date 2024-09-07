@@ -3,7 +3,7 @@ import {authenticateToken, authorizeRoles} from "../components/authentication/he
 
 const apiRoutes = express.Router();
 
-apiRoutes.get("/api/v1", (req, res) =>
+apiRoutes.get("/", (req, res) =>
   res.status(200).json({ status: 200, message: "server is working" })
 );
 
@@ -34,5 +34,8 @@ apiRoutes.use("/worker", workerRoute);
 
 import sRoute from "../components/shop/router/ShopRouter.js";
 apiRoutes.use("/shops", sRoute);
+
+import feedbackRoute from "../components/feedback/router/Feedbackrouter.js";
+apiRoutes.use("/feedback", feedbackRoute);
 
 export default apiRoutes;
