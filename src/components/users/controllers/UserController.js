@@ -8,51 +8,41 @@ import db from "../../../config/db.js";
 
 const fetchUsers = async (req, res) => {
   try {
-    // Pagination parameters
-    const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
-    const perPage = parseInt(req.query.perPage) || 10; // Default to 10 users per page
+    let page = parseInt(req.query.page) || 1;
+    let perPage = parseInt(req.query.perPage) || 10;
 
-    // Sorting parameters
-    const sort = req.query.sort || "asc"; // Default to ascending order if not provided
+    let sort = req.query.sort || "asc";
+    let role = req.query.role;
+    let offset = (page - 1) * perPage;
 
-    // Role parameter
-    const role = req.query.role; // Role to filter users by
-
-    // Calculate offset based on pagination
-    const offset = (page - 1) * perPage;
-
-    // Fetch users with pagination, including meta data, sorting, and role filtering
     let users = await UserModel.findAll({
       include: [
         {
           model: UserMetaModel,
           as: "meta",
-          where: role ? { meta_key: "role", meta_value: role } : {}, // Filter by role if provided
+          where: role ? { meta_key: "role", meta_value: role } : {},
         },
       ],
-      order: [
-        ["id", sort.toUpperCase()], // Sort by id in 'asc' or 'desc' order
-      ],
+      order: [["id", sort.toUpperCase()]],
       limit: perPage,
       offset: offset,
     });
 
-    // Total count of users (for pagination info)
     const totalCount = await UserModel.count({
       include: [
         {
           model: UserMetaModel,
           as: "meta",
-          where: role ? { meta_key: "role", meta_value: role } : {}, // Filter by role if provided
+          where: role ? { meta_key: "role", meta_value: role } : {},
         },
       ],
     });
 
-    // Format users data
     const formattedUsers = users.map((user) => ({
       id: user.id,
       fullname: user.fullname,
       email: user.email,
+      contact_no: user.contact_no,
       meta: user.meta.map((meta) => ({
         meta_key: meta.meta_key,
         meta_value: meta.meta_value,
@@ -68,11 +58,34 @@ const fetchUsers = async (req, res) => {
       totalCount: totalCount,
     };
 
-    // Return response with formatted users and pagination metadata
     return res.status(200).json({
       status: 200,
       data: formattedUsers,
       pagination: pagination,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: 500,
+      error: error.message || "Internal Server Error",
+    });
+  }
+};
+
+const profileDetails = async (req, res) => {
+  try {
+    let { email } = req.query;
+    let user = await UserModel.findOne({
+      where: { email },
+    });
+    if (!user) {
+      return res.status(404).json({
+        status: 400,
+        message: `User not found`,
+      });
+    }
+    return res.status(200).json({
+      status: 200,
+      data: user,
     });
   } catch (error) {
     return res.status(500).json({
@@ -127,16 +140,15 @@ const passwordReset = async (req, res) => {
 
     const { error, value } = signInSchema.validate(req.body);
 
-     // ----- Display error on the basis of schema
-     if (error) {
+    // ----- Display error on the basis of schema
+    if (error) {
       return res.status(400).json({
         status: 400,
         message: error.details[0].message,
       });
     }
 
-    let { newPassword, confirmPassword  } = value;
-
+    let { newPassword, confirmPassword } = value;
 
     // check the password entered by user matched or not!
     if (newPassword !== confirmPassword) {
@@ -153,7 +165,6 @@ const passwordReset = async (req, res) => {
       },
     });
 
-    // check if we have data or not if null user does not exists
     if (user === null) {
       return res.status(400).json({
         status: 400,
@@ -161,7 +172,6 @@ const passwordReset = async (req, res) => {
       });
     }
 
-    // if user record is found, update his password
     newPassword = PasswordHelper.encryptPassword(newPassword);
     let updateValue = await UserModel.update(
       { password: newPassword },
@@ -182,7 +192,7 @@ const passwordReset = async (req, res) => {
     return res.status(200).json({
       status: 200,
       message: "Password has been updated",
-      clientIp
+      clientIp,
     });
   } catch (error) {
     return res.status(500).json({
@@ -194,18 +204,46 @@ const passwordReset = async (req, res) => {
 
 const updateUserRole = async (req, res) => {
   try {
-    let userEmail = req.body.email;
+    let { email, role } = req.body;
+    let user = await UserModel.findOne({
+      where: { email },
+    });
+    if (!user) {
+      return res.status(404).json({
+        status: 404,
+        message: `User of ${email} not found`,
+      });
+    }
 
-    await UserModel.update(
-      {
-        role: "admin",
+    let user_id = user["dataValues"]["id"];
+
+    let userMeta = await UserMetaModel.findOne({
+      where: {
+        user_id,
+        meta_key: "role",
       },
+    });
+
+    if (!userMeta) {
+      return res.status(404).json({
+        status: 404,
+        message: `Role not found for user ${email}`,
+      });
+    }
+
+    await UserMetaModel.update(
+      { meta_value: role },
       {
         where: {
-          email: userEmail,
+          user_id,
         },
       }
-    ).then(value);
+    );
+
+    return res.status(200).json({
+      status: 200,
+      message: "Role has been updated",
+    });
   } catch (error) {
     return res.status(500).json({
       status: 500,

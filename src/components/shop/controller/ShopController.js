@@ -4,13 +4,39 @@ import db from "../../../config/db.js";
 
 const fetchShops = async (req, res) => {
   try {
+    let page = parseInt(req.query.page) || 1;
+    let perPage = parseInt(req.query.perPage) || 10;
+
+    let sort = req.query.sort || "asc";
+
+    let offset = (page - 1) * perPage;
     let data = await ShopModel.findAll({
       include: [{ model: ShopMetaModel, as: "meta" }],
+      order: [["id", sort.toUpperCase()]],
+      limit: perPage,
+      offset: offset,
     });
 
+    let totalCount = await ShopModel.count({
+      include: [
+        {
+          model: ShopMetaModel,
+          as: "meta",
+        },
+      ],
+    });
+
+    let totalPages = Math.ceil(totalCount / perPage);
+    let pagination = {
+      currentPage: page,
+      totalPages: totalPages,
+      perPage: perPage,
+      totalCount: totalCount,
+    };
     return res.status(200).json({
       status: 200,
-      data,
+      data: data,
+      pagination: pagination,
     });
   } catch (error) {
     return res.status(500).json({
@@ -97,7 +123,8 @@ const updateShop = async (req, res) => {
   const t = await db.sequelize.transaction();
   try {
     const { shopId } = req.query;
-    const { shop_name, shop_address, shop_contact, shop_reg_no, meta } = req.body;
+    const { shop_name, shop_address, shop_contact, shop_reg_no, meta } =
+      req.body;
 
     // Update shop details
     const shop = await ShopModel.update(

@@ -7,7 +7,7 @@ create table if not exists users(
     fullname varchar(100) not null,
     email varchar(100) not null unique,
     password varchar(255) not null,
-    phone_no bigint unique not null,
+    contact_no bigint unique not null,
     createdAt timestamp default current_timestamp,
     updatedAt timestamp default current_timestamp on update current_timestamp
 );
@@ -20,10 +20,10 @@ create table if not exists user_meta(
     foreign key(user_id) references users(id) on delete cascade
 );
 
-create table role(
+create table if not exists role(
     id int primary key auto_increment not null,
     role_name varchar(255) not null,
-    role_slug varchar(255) not null,
+    role_slug varchar(255) not null
 );
 
 create table if not exists gallery(
@@ -61,6 +61,15 @@ create table if not exists shop_meta(
     meta_key varchar(255) not null,
     meta_value varchar(255) not null,
     foreign key(shop_id) references shop(id) on delete cascade
+);
+
+create table if not exists shop_worker(
+    id int primary key auto_increment not null,
+    shop_id int not null,
+    worker_id int not null,
+    foreign key(shop_id) references shop(id) on delete cascade,
+    foreign key(worker_id) references users(id) on delete cascade,
+    createdAt timestamp default current_timestamp
 );
 
 create table if not exists feedback(
